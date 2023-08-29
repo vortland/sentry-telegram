@@ -1,5 +1,6 @@
 # coding: utf-8
 import logging
+import re
 from collections import defaultdict
 
 from django import forms
@@ -93,22 +94,26 @@ class TelegramNotificationsPlugin(CorePluginMixin, notify.NotificationPlugin):
                 'label': 'Message Template',
                 'type': 'textarea',
                 'help': 'Set in standard python\'s {}-format convention, available names are: '
-                    '{project_name}, {url}, {title}, {message}, {tag[%your_tag%]}. Undefined tags will be shown as [NA]',
+                        '{project_name}, {url}, {title}, {message}, {tag[%your_tag%]}. Undefined tags will be shown as [NA]',
                 'validators': [],
                 'required': True,
                 'default': '*[Sentry]* {project_name} {tag[level]}: *{title}*\n```{message}```\n{url}'
             },
         ]
 
+    def escape_markdown(self, text):
+        escape_chars = re.escape(r'_*`[')
+        return re.sub(f'([{escape_chars}])', r'\\\1', text)
+
     def build_message(self, group, event):
         the_tags = defaultdict(lambda: '[NA]')
-        the_tags.update({k:v for k, v in event.tags})
+        the_tags.update({k: v for k, v in event.tags})
         names = {
-            'title': event.title,
+            'title': self.escape_markdown(event.title),
             'tag': the_tags,
-            'message': event.message,
+            'message': self.escape_markdown(event.message),
             'culprit': group.culprit,
-            'project_name': group.project.name,
+            'project_name': self.escape_markdown(group.project.name),
             'url': group.get_absolute_url(),
         }
 
@@ -139,7 +144,7 @@ class TelegramNotificationsPlugin(CorePluginMixin, notify.NotificationPlugin):
         if message_thread_id:
             payload['message_thread_id'] = message_thread_id
             self.logger.debug('Sending message to message_thread_id: %s ' % message_thread_id)
-            
+
         response = safe_urlopen(
             method='POST',
             url=url,
