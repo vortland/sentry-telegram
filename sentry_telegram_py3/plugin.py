@@ -3,14 +3,14 @@ import logging
 from collections import defaultdict
 
 from django import forms
-from django.utils.translation import ugettext_lazy as _
-
-from sentry.plugins.bases import notify
+from django.utils.translation import gettext_lazy as _
 from sentry.http import safe_urlopen
-from sentry_plugins.base import CorePluginMixin
+from sentry.plugins.bases import notify
 from sentry.utils.safe import safe_execute
+from sentry_plugins.base import CorePluginMixin
 
-from . import __version__, __doc__ as package_doc
+from . import __doc__ as package_doc
+from . import __version__
 
 
 class TelegramNotificationsOptionsForm(notify.NotificationConfigurationForm):
@@ -93,7 +93,7 @@ class TelegramNotificationsPlugin(CorePluginMixin, notify.NotificationPlugin):
                 'label': 'Message Template',
                 'type': 'textarea',
                 'help': 'Set in standard python\'s {}-format convention, available names are: '
-                    '{project_name}, {url}, {title}, {message}, {tag[%your_tag%]}. Undefined tags will be shown as [NA]',
+                '{project_name}, {url}, {title}, {message}, {tag[%your_tag%]}. Undefined tags will be shown as [NA]',
                 'validators': [],
                 'required': True,
                 'default': '*[Sentry]* {project_name} {tag[level]}: *{title}*\n```{message}```\n{url}'
@@ -102,7 +102,7 @@ class TelegramNotificationsPlugin(CorePluginMixin, notify.NotificationPlugin):
 
     def build_message(self, group, event):
         the_tags = defaultdict(lambda: '[NA]')
-        the_tags.update({k:v for k, v in event.tags})
+        the_tags.update({k : v for k, v in event.tags})
         names = {
             'title': event.title,
             'tag': the_tags,
@@ -139,7 +139,7 @@ class TelegramNotificationsPlugin(CorePluginMixin, notify.NotificationPlugin):
         if message_thread_id:
             payload['message_thread_id'] = message_thread_id
             self.logger.debug('Sending message to message_thread_id: %s ' % message_thread_id)
-            
+
         response = safe_urlopen(
             method='POST',
             url=url,

@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
-from setuptools import setup
-
 from sentry_telegram_py3 import __version__
-
+from setuptools import setup
 
 with open('README.rst', 'r') as f:
     long_description = f.read()
