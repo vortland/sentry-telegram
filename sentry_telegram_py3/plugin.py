@@ -3,7 +3,11 @@ import logging
 from collections import defaultdict
 
 from django import forms
-from django.utils.translation import ugettext_lazy as _
+
+try:
+    from django.utils.translation import ugettext_lazy as _
+except ImportError:
+    from django.utils.translation import gettext_lazy as _
 
 from sentry.plugins.bases import notify
 from sentry.http import safe_urlopen
